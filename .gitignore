@@ -1,0 +1,10 @@
+# ignore all node_modules
+/node_modules/
+# ignore all logs
+*.log
+# ignore files Coverage test (Jest)
+/coverage
+# ignore files from Finder services (MacOS)
+.DS_Store
+# ignore files from JetBrains WebStorm
+.idea
