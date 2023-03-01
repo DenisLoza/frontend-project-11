@@ -8,3 +8,4 @@
 .DS_Store
 # ignore files from JetBrains WebStorm
 .idea
+/dist/
