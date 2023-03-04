@@ -1,5 +1,7 @@
 import * as yup from 'yup';
+import i18next from 'i18next';
 import view from './view.js';
+import resources from './locales/index.js';
 
 // схема валидации. возвращает Promise
 const validateUrl = (state, url) => {
@@ -30,23 +32,39 @@ const runApp = (state, elements) => {
 };
 // инициализация приложения 1 раз
 const initApp = () => {
-  // инициализация начального state
-  const initialState = {
-    channels: [],
-    rssForm: {
-      status: 'invalid',
-      errors: [],
-    },
-  };
-  // элементы DOM дерева
-  const elements = {
-    form: document.querySelector('form'),
-    input: document.getElementById('url-input'),
-  };
+  const defaultLanguage = 'ru';
+  const i18n = i18next.createInstance();
+  i18n.init({
+    lng: defaultLanguage,
+    debug: false,
+    resources,
+  })
+    .then(() => {
+      yup.setLocale({
+        string: {
+          url: 'invalidUrlError',
+        },
+        mixed: {
+          notOneOf: 'existUrlError',
+        },
+      });
+      const initialState = {
+        channels: [],
+        rssForm: {
+          status: 'invalid',
+          errors: [],
+        },
+      };
+      const elements = {
+        form: document.querySelector('form'),
+        input: document.getElementById('url-input'),
+        feedback: document.querySelector('.feedback'),
+      };
+      const state = view(initialState, elements, i18n);
 
-  const state = view(initialState, elements);
-  // перенаправляем данные в основную ф-цию
-  runApp(state, elements);
+      runApp(state, elements);
+    })
+    .catch((e) => console.error(e));
 };
 
 export default initApp;
