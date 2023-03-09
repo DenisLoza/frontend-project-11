@@ -1,24 +1,39 @@
-import * as yup from 'yup';
 import i18next from 'i18next';
-import view from './view.js';
+import onChange from 'on-change';
+import { string, setLocale } from 'yup';
+import {
+  renderRssForm,
+  renderRssFormError,
+} from './view.js';
 import resources from './locales/index.js';
 
-// схема валидации. возвращает Promise
 const validateUrl = (state, url) => {
-  const schema = yup.string()
-    .url()
-    .notOneOf(state.channels);
+  const schema = string().url().notOneOf(state.channels);
   return schema.validate(url);
 };
 
-const runApp = (state, elements) => {
+const runApp = (initialState, elements, i18n) => {
+  const state = onChange(initialState, (path, value) => { // previousValue
+    switch (path) {
+      case 'rssForm.status':
+        renderRssForm(value, elements);
+        break;
+      case 'channels':
+        break;
+      case 'rssForm.errors':
+        renderRssFormError(value, elements, i18n);
+        break;
+      default:
+        throw new Error(`Unknown state path: ${path}`);
+    }
+  });
+
   const { form } = elements;
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
     const url = formData.get('url');
-    // после валидации получаем Promise, если валидно
-    // то меняем в state статус и пушим новый url
+
     validateUrl(state, url)
       .then(() => {
         state.rssForm.status = 'valid';
@@ -30,7 +45,7 @@ const runApp = (state, elements) => {
       });
   });
 };
-// инициализация приложения 1 раз
+
 const initApp = () => {
   const defaultLanguage = 'ru';
   const i18n = i18next.createInstance();
@@ -40,7 +55,7 @@ const initApp = () => {
     resources,
   })
     .then(() => {
-      yup.setLocale({
+      setLocale({
         string: {
           url: 'invalidUrlError',
         },
@@ -60,9 +75,9 @@ const initApp = () => {
         input: document.getElementById('url-input'),
         feedback: document.querySelector('.feedback'),
       };
-      const state = view(initialState, elements, i18n);
+      // const state = view(initialState, elements, i18n);
 
-      runApp(state, elements);
+      runApp(initialState, elements, i18n);
     })
     .catch((e) => console.error(e));
 };
